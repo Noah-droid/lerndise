@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'authtutorial.urls'
+ROOT_URLCONF = 'lerndise.urls'
 
 TEMPLATES = [
     {
@@ -61,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'authtutorial.wsgi.application'
+WSGI_APPLICATION = 'lerndise.wsgi.application'
 
 
 # Database
@@ -123,6 +123,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 # override default User model
 
-
+APPEND_SLASH=False
 CORS_ORIGIN_ALLOW_ALL = True # FRONTEND PORT ACCESS
 CORS_ALLOW_CREDENTIALS = True # fCOOKIES FOR FRONTEND
