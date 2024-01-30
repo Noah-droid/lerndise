@@ -1,3 +1,11 @@
+from openai import AzureOpenAI
+import requests
+import openai
+from .serializers import CourseRequestSerializer
+from .models import CourseRequest
+from .serializers import CourseSerializer, CourseRequestSerializer
+from .models import Course, CourseRequest
+from rest_framework import status
 from django.shortcuts import render
 
 from rest_framework.views import APIView
@@ -9,6 +17,7 @@ import jwt
 import datetime
 from .serializers import StudentSerializer, InstructorSerializer
 
+
 class registerAPIView(APIView):
     def post(self, request):
         role = request.data.get('role', 'student')
@@ -17,7 +26,6 @@ class registerAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
 
 
 class LoginAPIView(APIView):
@@ -52,7 +60,6 @@ class LoginAPIView(APIView):
         return response
 
 
-
 class UserView(APIView):
     def get(self, request):
         token = request.COOKIES.get('jwt')
@@ -75,7 +82,8 @@ class UserView(APIView):
 
         return Response(serializer.data)
 
-        #cookies accessed if preserved
+        # cookies accessed if preserved
+
 
 class LogoutView(APIView):
     def post(self, request):
@@ -86,3 +94,53 @@ class LogoutView(APIView):
         }
 
         return response
+
+
+class CourseListAPIView(APIView):
+    def get(self, request):
+        courses = Course.objects.all()
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CourseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CourseRequestAPIView(APIView):
+    def post(self, request):
+        serializer = CourseRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            # Azure OpenAI API configuration
+            azure_openai = AzureOpenAI(
+                api_key="b0704e3a203a4eac8a6bf7d934d87c55",
+                api_version="2023-07-01-preview",
+                azure_endpoint="https://lerndise-openai.openai.azure.com",
+
+            )
+
+            # Create a prompt for ChatGPT based on the course
+            prompt = f"Generate course content for {serializer.validated_data['course']}"
+
+            # Make a request to Azure OpenAI API
+            completion = azure_openai.chat.completions.create(
+                model="Lerndise-gpt4",  # Specify the desired GPT model
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            completion = completion.json()
+            generated_content = completion['choices'][0]['message']['content']
+            serializer.save(generated_content=generated_content)
+
+            # Check if the request was successful
+            # if completion.status_code == 200:
+
+            #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # else:
+            #     return Response({"error": "Failed to generate content"}, status=completion.status_code)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
