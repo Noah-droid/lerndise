@@ -17,9 +17,12 @@ class User(AbstractUser):
 class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    # instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses')
+    
+    # instructor = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='courses_temp')  # Allow null temporarily
+
 
 class CourseRequest(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_requests')
+    # student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_requests')
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    generated_content = models.TextField(blank = True, null = True)
     created_at = models.DateTimeField(auto_now_add=True)
