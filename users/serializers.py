@@ -31,12 +31,31 @@ class InstructorSerializer(UserSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    # generated_content = serializers.SerializerMethodField()
+
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', ]
+        fields = ['id', 'title', 'description']
+        # read_only_fields = ['instructor']
+
+ 
 
 class CourseRequestSerializer(serializers.ModelSerializer):
+    # course = serializers.CharField(source='course.title')
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
+    # generated_content = serializers.CharField(write_only=True, required=False)  # Mark as not required
+
     class Meta:
         model = CourseRequest
-        fields = ['id', 'student', 'course', 'created_at']
-        read_only_fields = ['student']
+        fields = ['id', 'course', 'created_at', 'generated_content']
+        read_only_fields = ['created_at']
+
+    def create(self, validated_data):
+        generated_content = validated_data.pop('generated_content', '')  
+        instance = super().create(validated_data)
+        instance.generated_content = generated_content
+        instance.save()
+        return instance
+    
+    def get_generated_content(self, instance):
+        return instance.generated_content
