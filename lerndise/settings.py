@@ -1,7 +1,11 @@
 
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,7 +19,7 @@ SECRET_KEY = 'django-insecure-czyun=sx4g0!4f64x^r@29t_#ihq7*yrp@kns&&@0g9-6jj5(-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['backend-lrndise.azurewebsites.net',]
 
 
 # Application definition
@@ -94,6 +98,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ]
+# }
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -126,3 +135,8 @@ AUTH_USER_MODEL = 'users.User'
 APPEND_SLASH=False
 CORS_ORIGIN_ALLOW_ALL = True # FRONTEND PORT ACCESS
 CORS_ALLOW_CREDENTIALS = True # fCOOKIES FOR FRONTEND
+
+
+AZURE_OPENAI_API_KEY = os.getenv('API_KEY')
+AZURE_OPENAI_API_VERSION = os.getenv('API_VERSION')
+AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_ENDPOINT')
