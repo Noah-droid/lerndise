@@ -7,7 +7,7 @@ from .serializers import CourseSerializer, CourseRequestSerializer
 from .models import Course, CourseRequest
 from rest_framework import status
 from django.shortcuts import render
-
+from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import UserSerializer
@@ -16,8 +16,12 @@ from rest_framework.exceptions import AuthenticationFailed
 import jwt
 import datetime
 from .serializers import StudentSerializer, InstructorSerializer
+# from rest_framework.permissions import IsAuthenticated
+from dotenv import load_dotenv
+import os
 
-
+# Load environment variables from .env file
+load_dotenv()
 class registerAPIView(APIView):
     def post(self, request):
         role = request.data.get('role', 'student')
@@ -110,7 +114,22 @@ class CourseListAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 class CourseRequestAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    def get(self, request):
+        course_requests = CourseRequest.objects.all()
+
+        # Serialize each course request along with the related course data
+        serialized_data = []
+        for course_request in course_requests:
+            serialized_course_request = CourseRequestSerializer(course_request).data
+            # Include the related course data
+            serialized_course_request['course'] = course_request.course.title
+            serialized_data.append(serialized_course_request)
+        return Response(serialized_data)
+
     def post(self, request):
         serializer = CourseRequestSerializer(data=request.data)
         if serializer.is_valid():
@@ -119,28 +138,33 @@ class CourseRequestAPIView(APIView):
                 api_key="b0704e3a203a4eac8a6bf7d934d87c55",
                 api_version="2023-07-01-preview",
                 azure_endpoint="https://lerndise-openai.openai.azure.com",
-
             )
 
-            # Create a prompt for ChatGPT based on the course
-            prompt = f"Generate course content for {serializer.validated_data['course']}"
+            course_instance = serializer.validated_data['course']
+            course_data = CourseSerializer(course_instance).data
+            prompt = f"Generate course content for {course_data['title']}: {course_data['description']}"
 
-            # Make a request to Azure OpenAI API
             completion = azure_openai.chat.completions.create(
                 model="Lerndise-gpt4",  # Specify the desired GPT model
                 messages=[
                     {"role": "user", "content": prompt},
                 ],
             )
-            completion = completion.json()
-            generated_content = completion['choices'][0]['message']['content']
-            serializer.save(generated_content=generated_content)
 
-            # Check if the request was successful
-            # if completion.status_code == 200:
+            # Access the generated content from the completion and pass it to serializer
+            generated_content = completion.choices[0].message.content
+            print(generated_content)
 
-            #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-            # else:
-            #     return Response({"error": "Failed to generate content"}, status=completion.status_code)
+            # Save the generated content to the course request
+            course_request_instance = serializer.save(generated_content=generated_content)
+
+            response_data = {
+                'generated_content': generated_content,
+                'course_title': course_data['title']
+            }
+
+            return Response({**serializer.data, **response_data}, status=status.HTTP_201_CREATED)
+        """ This line merges the dictionaries serializer.data and response_data into a single dictionary and passes it as the first argument to Response, 
+         and the status argument is specified separately. """
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
