@@ -135,9 +135,9 @@ class CourseRequestAPIView(APIView):
         if serializer.is_valid():
             # Azure OpenAI API configuration
             azure_openai = AzureOpenAI(
-                api_key="b0704e3a203a4eac8a6bf7d934d87c55",
-                api_version="2023-07-01-preview",
-                azure_endpoint="https://lerndise-openai.openai.azure.com",
+               api_key=os.getenv('API_KEY'),
+                api_version=os.getenv('API_VERSION'),
+                azure_endpoint=os.getenv('AZURE_ENDPOINT')
             )
 
             course_instance = serializer.validated_data['course']
