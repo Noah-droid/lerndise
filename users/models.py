@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from PIL import Image
 
 class User(AbstractUser):
     name = models.CharField(max_length=255)
@@ -17,6 +18,8 @@ class User(AbstractUser):
 class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
+    cover = models.ImageField(default=None, null=True, blank=True)
+    outline =  models.TextField(default=None)
     
     # instructor = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='courses_temp')  # Allow null temporarily
 
