@@ -35,7 +35,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description']
+        fields = ['id', 'title', 'description', 'cover', 'outline']
         # read_only_fields = ['instructor']
 
  
