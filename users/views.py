@@ -19,6 +19,7 @@ from .serializers import StudentSerializer, InstructorSerializer
 # from rest_framework.permissions import IsAuthenticated
 from dotenv import load_dotenv
 import os
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Load environment variables from .env file
 load_dotenv()
@@ -101,6 +102,7 @@ class LogoutView(APIView):
 
 
 class CourseListAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
     def get(self, request):
         courses = Course.objects.all()
         serializer = CourseSerializer(courses, many=True)
@@ -108,6 +110,7 @@ class CourseListAPIView(APIView):
 
     def post(self, request):
         serializer = CourseSerializer(data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -142,7 +145,7 @@ class CourseRequestAPIView(APIView):
 
             course_instance = serializer.validated_data['course']
             course_data = CourseSerializer(course_instance).data
-            prompt = f"Generate course content for {course_data['title']}: {course_data['description']}"
+            prompt = f"Generate course content for student in K-12 from {course_data['title']}: {course_data['description']} : {course_data['outline']}"
 
             completion = azure_openai.chat.completions.create(
                 model="Lerndise-gpt4",  # Specify the desired GPT model
